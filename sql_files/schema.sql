@@ -35,7 +35,7 @@ CREATE INDEX idx_student_email ON university.student(email);
 CREATE TABLE university.course (
   course_id SERIAL PRIMARY KEY,
   dept_id INT NOT NULL REFERENCES university.department(dept_id) ON DELETE CASCADE,
-  code VARCHAR(20) NOT NULL, -- e.g., CS101
+  code VARCHAR(20) NOT NULL,
   title TEXT NOT NULL,
   credits NUMERIC(3,1) NOT NULL,
   UNIQUE(dept_id, code)
@@ -45,7 +45,7 @@ CREATE TABLE university.course (
 CREATE TABLE university.section (
   section_id SERIAL PRIMARY KEY,
   course_id INT NOT NULL REFERENCES university.course(course_id) ON DELETE CASCADE,
-  section_code VARCHAR(16) NOT NULL, -- e.g., A, B, LEC01
+  section_code VARCHAR(16) NOT NULL,
   instructor_id INT REFERENCES university.instructor(instructor_id) ON DELETE SET NULL,
   capacity INT NOT NULL CHECK (capacity >= 0),
   UNIQUE (course_id, section_code)

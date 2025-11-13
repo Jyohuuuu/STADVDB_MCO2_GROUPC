@@ -1,6 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
+	const [students, setStudents] = useState([]);
+	const [selectedStudent, setSelectedStudent] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+	useEffect(() => {
+		fetchStudents();
+	}, []);
+
+	const fetchStudents = async () => {
+		setLoading(true);
+		setError("");
+		try {
+			const response = await fetch(`${API_URL}/api/students`);
+			const data = await response.json();
+
+			if (data.success) {
+				setStudents(data.data);
+			} else {
+				setError("Failed to fetch students");
+			}
+		} catch (err) {
+			setError("Error connecting to server. Make sure backend is running.");
+			console.error(err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleStudentChange = (e) => {
+		setSelectedStudent(e.target.value);
+	};
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
 			<div className="max-w-7xl mx-auto">
@@ -24,105 +58,120 @@ function App() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-						<div className="group bg-white/70 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300 hover:bg-white/80">
-							<div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl mb-4 flex items-center justify-center">
-								<svg
-									className="w-6 h-6 text-white"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-									/>
-								</svg>
+					{/* Student Selector Section */}
+					<div className="max-w-2xl mx-auto mb-16">
+						<div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20">
+							<div className="text-center mb-6">
+								<h3 className="text-2xl font-bold text-slate-800 mb-2 font-jakarta">
+									Select a Student
+								</h3>
+								<p className="text-slate-600 font-inter">
+									Choose a student to view their information
+								</p>
 							</div>
-							<h3 className="text-slate-800 text-2xl font-bold mb-3 group-hover:text-emerald-700 transition-colors font-jakarta">
-								Student Information
-							</h3>
-							<p className="text-slate-600 leading-relaxed font-medium font-inter">
-								Access and manage student records and enrollment data with our
-								intuitive interface
-							</p>
-						</div>
 
-						<div className="group bg-white/70 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300 hover:bg-white/80">
-							<div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl mb-4 flex items-center justify-center">
-								<svg
-									className="w-6 h-6 text-white"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-							</div>
-							<h3 className="text-slate-800 text-2xl font-bold mb-3 group-hover:text-blue-700 transition-colors font-jakarta">
-								Course Catalog
-							</h3>
-							<p className="text-slate-600 leading-relaxed font-medium font-inter">
-								Browse available courses and their details with advanced search
-								and filtering
-							</p>
-						</div>
+							{error && (
+								<div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+									<p className="text-red-700 text-sm font-medium">{error}</p>
+									<button
+										onClick={fetchStudents}
+										className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
+									>
+										Try again
+									</button>
+								</div>
+							)}
 
-						<div className="group bg-white/70 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300 hover:bg-white/80">
-							<div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl mb-4 flex items-center justify-center">
-								<svg
-									className="w-6 h-6 text-white"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							<div className="space-y-4">
+								<select
+									value={selectedStudent}
+									onChange={handleStudentChange}
+									disabled={loading}
+									className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-inter text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-									/>
-								</svg>
-							</div>
-							<h3 className="text-slate-800 text-2xl font-bold mb-3 group-hover:text-purple-700 transition-colors font-jakarta">
-								Department Directory
-							</h3>
-							<p className="text-slate-600 leading-relaxed font-medium font-inter">
-								Find information about university departments and their
-								specializations
-							</p>
-						</div>
+									<option value="">
+										{loading ? "Loading students..." : "Select a student..."}
+									</option>
+									{students.map((student) => (
+										<option key={student.student_id} value={student.student_id}>
+											{student.student_number} - {student.first_name}{" "}
+											{student.last_name}
+										</option>
+									))}
+								</select>
 
-						<div className="group bg-white/70 backdrop-blur-sm border border-white/20 rounded-2xl p-8 shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300 hover:bg-white/80">
-							<div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl mb-4 flex items-center justify-center">
-								<svg
-									className="w-6 h-6 text-white"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-									/>
-								</svg>
+								{selectedStudent && (
+									<div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+										{(() => {
+											const student = students.find(
+												(s) => s.student_id === parseInt(selectedStudent)
+											);
+											return student ? (
+												<div className="space-y-2">
+													<h4 className="font-bold text-emerald-800 font-jakarta">
+														Selected Student:
+													</h4>
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+														<div>
+															<span className="font-medium text-emerald-700">
+																ID:
+															</span>{" "}
+															<span className="text-emerald-900">
+																{student.student_id}
+															</span>
+														</div>
+														<div>
+															<span className="font-medium text-emerald-700">
+																Number:
+															</span>{" "}
+															<span className="text-emerald-900">
+																{student.student_number}
+															</span>
+														</div>
+														<div>
+															<span className="font-medium text-emerald-700">
+																Name:
+															</span>{" "}
+															<span className="text-emerald-900">
+																{student.first_name} {student.last_name}
+															</span>
+														</div>
+														<div>
+															<span className="font-medium text-emerald-700">
+																Email:
+															</span>{" "}
+															<span className="text-emerald-900">
+																{student.email}
+															</span>
+														</div>
+													</div>
+												</div>
+											) : null;
+										})()}
+									</div>
+								)}
+
+								<div className="flex items-center justify-center space-x-4 text-sm text-slate-500">
+									<div className="flex items-center space-x-2">
+										<div
+											className={`w-2 h-2 rounded-full ${
+												loading
+													? "bg-yellow-400"
+													: error
+													? "bg-red-400"
+													: "bg-green-400"
+											}`}
+										></div>
+										<span>
+											{loading
+												? "Loading..."
+												: error
+												? "Connection Error"
+												: `${students.length} students loaded`}
+										</span>
+									</div>
+								</div>
 							</div>
-							<h3 className="text-slate-800 text-2xl font-bold mb-3 group-hover:text-orange-700 transition-colors font-jakarta">
-								Instructor Profiles
-							</h3>
-							<p className="text-slate-600 leading-relaxed font-medium font-inter">
-								View instructor information and contact details for better
-								academic connections
-							</p>
 						</div>
 					</div>
 				</main>
