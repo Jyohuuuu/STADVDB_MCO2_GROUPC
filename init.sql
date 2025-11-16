@@ -155,9 +155,9 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (2, 'David', 'Lim', 'david.lim@univ.edu'),
 (3, 'Eva', 'Garcia', 'eva.garcia@univ.edu'),
 (4, 'Frank', 'Wong', 'frank.wong@univ.edu'),
-(5, 'Grace', 'Nguyen', 'grace.nguyen@univ.edu'),
+(5, 'Grace', 'Nguyen', 'grace.nguyen@univ.edu'), -- ins_id 7
 (6, 'Hannah', 'Lee', 'hannah.lee@univ.edu'),
-(7, 'Ian', 'Martinez', 'ian.martinez@univ.edu'),
+(7, 'Ian', 'Martinez', 'ian.martinez@univ.edu'), --ins_id 9
 (8, 'Jasmine', 'Lopez', 'jasmine.lopez@univ.edu'),
 (9, 'Kevin', 'Hernandez', 'kevin.hernandez@univ.edu'),
 (10, 'Lily', 'Gonzalez', 'lily.gonzalez@univ.edu'),
@@ -169,7 +169,7 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (6, 'Rachel', 'Wilson', 'rachel.wilson@univ.edu'),
 (7, 'Sam', 'Moore', 'sam.moore@univ.edu'),
 (8, 'Tina', 'Taylor', 'tina.taylor@univ.edu'),
-(9, 'Uma', 'Anderson', 'uma.anderson@univ.edu'),
+(9, 'Uma', 'Anderson', 'uma.anderson@univ.edu'), -- ins_id 21
 (10, 'Victor', 'Thomas', 'victor.thomas@univ.edu'),
 (1, 'Wendy', 'Jackson', 'wendy.jackson@univ.edu'), -- ins_id 23
 (2, 'Xander', 'White', 'xander.white@univ.edu'),
@@ -178,7 +178,7 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (5, 'Aaron', 'Thompson', 'aaron.thompson@univ.edu'),
 (6, 'Bella', 'Scott', 'bella.scott@univ.edu'),
 (7, 'Carlos', 'Adams', 'carlos.adams@univ.edu'),
-(8, 'Diana', 'Nelson', 'diana.nelson@univ.edu'),
+(8, 'Diana', 'Nelson', 'diana.nelson@univ.edu'), -- ins_id 30
 (9, 'Ethan', 'Carter', 'ethan.carter@univ.edu'),
 (10, 'Fiona', 'Mitchell', 'fiona.mitchell@univ.edu'),
 (1, 'George', 'Perez', 'george.perez@univ.edu'),
@@ -188,7 +188,7 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (5, 'Kyle', 'Campbell', 'kyle.campbell@univ.edu'),
 (6, 'Laura', 'Parker', 'laura.parker@univ.edu'),
 (7, 'Mason', 'Evans', 'mason.evans@univ.edu'),
-(8, 'Nora', 'Edwards', 'nora.edwards@univ.edu'),
+(8, 'Nora', 'Edwards', 'nora.edwards@univ.edu'), -- ins_id 40
 (9, 'Owen', 'Collins', 'owen.collins@univ.edu'),
 (10, 'Penelope', 'Stewart', 'penelope.stewart@univ.edu'),
 (1, 'Quentin', 'Sanchez', 'quentin.sanchez@univ.edu'),
@@ -198,14 +198,29 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (5, 'Ursula', 'Murphy', 'ursula.murphy@univ.edu'),
 (6, 'Victor', 'Bailey', 'victor.bailey@univ.edu'),
 (7, 'Willow', 'Rivera', 'willow.rivera@univ.edu'),
-(8, 'Xavier', 'Cooper', 'xavier.cooper@univ.edu'),
+(8, 'Xavier', 'Cooper', 'xavier.cooper@univ.edu'), -- ins_id 50
 (9, 'Yvonne', 'Richardson', 'yvonne.richardson@univ.edu'),
 (10, 'Zachary', 'Howard', 'zachary.howard@univ.edu'),
 (1, 'Ariana', 'Ward', 'ariana.ward@univ.edu'),
 (2, 'Benjamin', 'Brooks', 'benjamin.brooks@univ.edu'),
 (3, 'Caitlyn', 'Gray', 'caitlyn.gray@univ.edu'),
 (4, 'Derrick', 'Watson', 'derrick.watson@univ.edu'),
-(5, 'Elena', 'James', 'elena.james@univ.edu')
+(5, 'Elena', 'James', 'elena.james@univ.edu'),
+(6, 'Felix', 'Scott', 'felix.scott@univ.edu'),
+(7, 'Gabriella', 'Adams', 'gabriella.adams@univ.edu'),
+(8, 'Henry', 'Nelson', 'henry.nelson@univ.edu'), -- ins_id 60
+(9, 'Isabel', 'Carter', 'isabel.carter@univ.edu'),
+(10, 'Jack', 'Mitchell', 'jack.mitchell@univ.edu'),
+(1, 'Katherine', 'Perez', 'katherine.perez@univ.edu'),
+(2, 'Landon', 'Roberts', 'landon.roberts@univ.edu'),
+(3, 'Maya', 'Turner', 'maya.turner@univ.edu'),
+(4, 'Nathan', 'Phillips', 'nathan.phillips@univ.edu'),
+(5, 'Olivia', 'Campbell', 'olivia.campbell@univ.edu'),
+(6, 'Patrick', 'Parker', 'patrick.parker@univ.edu'),
+(7, 'Quincy', 'Evans', 'quincy.evans@univ.edu'),
+(8, 'Rebecca', 'Edwards', 'rebecca.edwards@univ.edu'), -- ins_id 70
+(9, 'Steven', 'Collins', 'steven.collins@univ.edu'),
+(10, 'Theresa', 'Stewart', 'theresa.stewart@univ.edu')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO university.student (student_number, first_name, last_name, email) VALUES
@@ -311,7 +326,6 @@ INSERT INTO university.student (student_number, first_name, last_name, email) VA
 ('S1100', 'Kinsley', 'Cook', 'kinsley.cook@univ.edu')
 ON CONFLICT (student_number) DO NOTHING;
 
--- still need to add courses and sections
 INSERT INTO university.course (dept_id, code, title, credits) VALUES
 (1,'CS101','Intro to Programming',3.0),
 (1,'CS102','Data Structures',3.0),
@@ -375,7 +389,6 @@ INSERT INTO university.course (dept_id, code, title, credits) VALUES
 ON CONFLICT (dept_id, code) DO NOTHING;
 
 INSERT INTO university.section (course_id, section_code, instructor_id, capacity) VALUES
--- Dept: CS Intro to Programming Sections
 (1, 'A', 1, 40),
 (1, 'B', 1, 40),
 (1, 'C', 2, 40),
@@ -396,8 +409,233 @@ INSERT INTO university.section (course_id, section_code, instructor_id, capacity
 (4, 'C', 13, 25),
 (4, 'D', 23, 25),
 -- Operating Systems Sections
-(5, 'A', 13, 25),
-(5, 'B', 13, 25),
-(5, 'C', 23, 25),
-(5, 'D', 23, 25)
+(5, 'A', 33, 25),
+(5, 'B', 33, 25),
+(5, 'C', 43, 25),
+(5, 'D', 43, 25),
+-- Dept: ENG Statistics
+(6, 'A', 4, 40),
+(6, 'B', 4, 40),
+(6, 'C', 14, 40),
+(6, 'D', 14, 40),
+-- Dynamics
+(7, 'A', 4, 25),
+(7, 'B', 4, 25),
+(7, 'C', 24, 25),
+(7, 'D', 24, 25),
+-- Thermodynamics
+(8, 'A', 34, 40),
+(8, 'B', 34, 40),
+(8, 'C', 44, 40),
+(8, 'D', 44, 40),
+-- Fluid Mechanics
+(9, 'A', 4, 25),
+(9, 'B', 4, 25),
+(9, 'C', 14, 25),
+(9, 'D', 14, 25),
+-- Engineering Materials
+(10, 'A', 54, 25),
+(10, 'B', 54, 25),
+(10, 'C', 64, 25),
+(10, 'D', 64, 25),
+-- Dept: BIO General Biology
+(11, 'A', 5, 40),
+(11, 'B', 5, 40),
+(11, 'C', 15, 40),
+(11, 'D', 15, 40),
+-- Cell Biology
+(12, 'A', 5, 40),
+(12, 'B', 5, 40),
+(12, 'C', 25, 40),
+(12, 'D', 25, 40),
+-- Genetics
+(13, 'A', 35, 40),
+(13, 'B', 35, 40),
+(13, 'C', 45, 40),
+(13, 'D', 45, 40),
+-- Microbiology
+(14, 'A', 5, 25),
+(14, 'B', 5, 25),
+(14, 'C', 15, 25),
+(14, 'D', 15, 25),
+-- Molecular Biology
+(15, 'A', 55, 25),
+(15, 'B', 55, 25),
+(15, 'C', 65, 25),
+(15, 'D', 65, 25),
+-- Dept: CHE General Chemistry
+(16, 'A', 6, 60),
+(16, 'B', 6, 60),
+(16, 'C', 16, 60),
+(16, 'D', 16, 60),
+-- Organic Chemistry
+(17, 'A', 6, 40),
+(17, 'B', 6, 40),
+(17, 'C', 26, 40),
+(17, 'D', 26, 40),
+-- Physical Chemistry
+(18, 'A', 36, 40),
+(18, 'B', 36, 40),
+(18, 'C', 46, 40),
+(18, 'D', 46, 40),
+-- Analytical Chemistry
+(19, 'A', 6, 25),
+(19, 'B', 6, 25),
+(19, 'C', 16, 25),
+(19, 'D', 16, 25),
+-- Biochemistry
+(20, 'A', 56, 25),
+(20, 'B', 56, 25),
+(20, 'C', 66, 25),
+(20, 'D', 66, 25),
+-- Dept: PHY Classical Mechanics
+(21, 'A', 7, 40),
+(21, 'B', 7, 40),
+(21, 'C', 17, 40),
+(21, 'D', 17, 40),
+-- Electromagnetism
+(22, 'A', 7, 40),
+(22, 'B', 7, 40),
+(22, 'C', 27, 40),
+(22, 'D', 27, 40),
+-- Quantum Physics
+(23, 'A', 37, 25),
+(23, 'B', 37, 25),
+(23, 'C', 47, 25),
+(23, 'D', 47, 25),
+-- Thermodynamics
+(24, 'A', 7, 25),
+(24, 'B', 7, 25),
+(24, 'C', 17, 25),
+(24, 'D', 17, 25),
+-- Optics
+(25, 'A', 57, 25),
+(25, 'B', 57, 25),
+(25, 'C', 67, 25),
+(25, 'D', 67, 25),
+-- Dept: CLA World Literature
+(26, 'A', 8, 40),
+(26, 'B', 8, 40),
+(26, 'C', 18, 40),
+(26, 'D', 18, 40),
+-- Creative Writing
+(27, 'A', 8, 40),
+(27, 'B', 8, 40),
+(27, 'C', 28, 40),
+(27, 'D', 28, 40),
+-- Philosophy
+(28, 'A', 38, 25),
+(28, 'B', 38, 25),
+(28, 'C', 48, 25),
+(28, 'D', 48, 25),
+-- Ethics
+(29, 'A', 8, 40),
+(29, 'B', 8, 40),
+(29, 'C', 18, 40),
+(29, 'D', 18, 40),
+-- Humanities Seminar
+(30, 'A', 58, 40),
+(30, 'B', 58, 40),
+(30, 'C', 68, 40),
+(30, 'D', 68, 40),
+-- Dept: MUS Music Theory
+(31, 'A', 9, 40),
+(31, 'B', 9, 40),
+(31, 'C', 19, 40),
+(31, 'D', 19, 40),
+-- Music History
+(32, 'A', 9, 40),
+(32, 'B', 9, 40),
+(32, 'C', 29, 40),
+(32, 'D', 29, 40),
+-- Composition
+(33, 'A', 39, 25),
+(33, 'B', 39, 25),
+(33, 'C', 49, 25),
+(33, 'D', 49, 25),
+-- Conducting
+(34, 'A', 9, 25),
+(34, 'B', 9, 25),
+(34, 'C', 19, 25),
+(34, 'D', 19, 25),
+-- Advanced Performance
+(35, 'A', 59, 25),
+(35, 'B', 59, 25),
+(35, 'C', 69, 25),
+(35, 'D', 69, 25),
+-- Dept: ART Drawing I
+(36, 'A', 10, 40),
+(36, 'B', 10, 40),
+(36, 'C', 20, 40),
+(36, 'D', 20, 40),
+-- Painting I
+(37, 'A', 10, 40),
+(37, 'B', 10, 40),
+(37, 'C', 30, 40),
+(37, 'D', 30, 40),
+-- Sculpture
+(38, 'A', 40, 25),
+(38, 'B', 40, 25),
+(38, 'C', 50, 25),
+(38, 'D', 50, 25),
+-- Digital Arts
+(39, 'A', 10, 40),
+(39, 'B', 10, 40),
+(39, 'C', 20, 40),
+(39, 'D', 20, 40),
+-- Advanced Studio
+(40, 'A', 60, 25),
+(40, 'B', 60, 25),
+(40, 'C', 70, 25),
+(40, 'D', 70, 25),
+-- Dept: EDU Foundations of Education
+(41, 'A', 11, 60),
+(41, 'B', 11, 60),
+(41, 'C', 21, 60),
+(41, 'D', 21, 60),
+-- Educational Psychology
+(42, 'A', 11, 40),
+(42, 'B', 11, 40),
+(42, 'C', 31, 40),
+(42, 'D', 31, 40),
+-- Assessment of Learning
+(43, 'A', 41, 40),
+(43, 'B', 41, 40),
+(43, 'C', 51, 40),
+(43, 'D', 51, 40),
+-- Curriculum Development
+(44, 'A', 11, 25),
+(44, 'B', 11, 25),
+(44, 'C', 21, 25),
+(44, 'D', 21, 25),
+-- Teaching Strategies
+(45, 'A', 61, 25),
+(45, 'B', 61, 25),
+(45, 'C', 71, 25),
+(45, 'D', 71, 25),
+-- Dept: MATH College Algebra
+(46, 'A', 12, 60),
+(46, 'B', 12, 60),
+(46, 'C', 22, 60),
+(46, 'D', 22, 60),
+-- Trigonometry
+(47, 'A', 12, 40),
+(47, 'B', 12, 40),
+(47, 'C', 32, 40),
+(47, 'D', 32, 40),
+-- Calculus I
+(48, 'A', 42, 40),
+(48, 'B', 42, 40),
+(48, 'C', 52, 40),
+(48, 'D', 52, 40),
+-- Calculus II
+(49, 'A', 12, 25),
+(49, 'B', 12, 25),
+(49, 'C', 22, 25),
+(49, 'D', 22, 25),
+-- Linear Algebra
+(50, 'A', 62, 25),
+(50, 'B', 62, 25),
+(50, 'C', 72, 25),
+(50, 'D', 72, 25)
 ON CONFLICT (course_id, section_code) DO NOTHING;

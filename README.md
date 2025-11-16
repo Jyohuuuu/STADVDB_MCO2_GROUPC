@@ -41,6 +41,9 @@ VITE_API_URL=http://localhost:5000
 ```
 1. To start
 docker-compose up --build (make sure you are at root)
+2. To Stop and Remove Containers
+docker-compose down -v
+
 ```
 
 ## ACCESS
