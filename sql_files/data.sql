@@ -504,3 +504,41 @@ INSERT INTO university.section (course_id, section_code, instructor_id, capacity
 (50, 'C', 72, 25),
 (50, 'D', 72, 25)
 ON CONFLICT (course_id, section_code) DO NOTHING;
+
+INSERT INTO section_schedule (section_id, day_of_week, start_time, end_time) VALUES
+(1, 'Monday', '07:30', '09:00'),
+(1, 'Tuesday', '07:30', '09:00'),
+(2, 'Monday', '07:30', '09:00'),
+(2, 'Tuesday', '07:30', '09:00'),
+(3, 'Monday', '07:30', '09:00'),
+(3, 'Tuesday', '07:30', '09:00'),
+(4, 'Monday', '07:30', '09:00'),
+(4, 'Tuesday', '07:30', '09:00'),
+
+(5, 'Monday', '10:15', '11:45'),
+(5, 'Tuesday', '10:15', '11:45'),
+(6, 'Monday', '10:15', '11:45'),
+(6, 'Tuesday', '10:15', '11:45'),
+(7, 'Monday', '10:15', '11:45'),
+(7, 'Tuesday', '10:15', '11:45'),
+(8, 'Monday', '10:15', '11:45'),
+(8, 'Tuesday', '10:15', '11:45'),
+
+(9, 'Monday', '12:00', '13:30'),
+(9, 'Tuesday', '12:00', '13:30'),
+(10, 'Monday', '12:00', '13:30'),
+(10, 'Tuesday', '12:00', '13:30'),
+(11, 'Monday', '12:00', '13:30'),
+(11, 'Tuesday', '12:00', '13:30'),
+(12, 'Monday', '12:00', '13:30'),
+(12, 'Tuesday', '12:00', '13:30'),
+
+(13, 'Monday', '13:45', '15:15'),
+(13, 'Tuesday', '13:45', '15:15'),
+(14, 'Monday', '13:45', '15:30'),
+(14, 'Tuesday', '13:45', '15:30'),
+(15, 'Monday', '13:45', '15:30'),
+(15, 'Tuesday', '13:45', '15:30'),
+(16, 'Monday', '13:45', '15:30'),
+(16, 'Tuesday', '13:45', '15:30')
+ON CONFLICT (section_id, day_of_week, start_time, end_time) DO NOTHING;

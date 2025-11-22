@@ -48,23 +48,18 @@ CREATE TABLE university.section (
   section_code VARCHAR(16) NOT NULL,
   instructor_id INT REFERENCES university.instructor(instructor_id) ON DELETE SET NULL,
   capacity INT NOT NULL CHECK (capacity >= 0),
+  remaining_slots INT NOT NULL CHECK (remaining_slots >= 0),
   UNIQUE (course_id, section_code)
 );
 
-CREATE INDEX idx_section_course ON university.section(course_id);
-
--- Section Seat Tracker (for concurrency control)
-CREATE TABLE university.section_seat (
-  section_id INT PRIMARY KEY REFERENCES university.section(section_id) ON DELETE CASCADE,
-  capacity INT NOT NULL CHECK (capacity >= 0),
-  enrolled_count INT NOT NULL DEFAULT 0,
-  version INT NOT NULL DEFAULT 1
+CREATE TABLE university.section_schedule (
+  schedule_id SERIAL PRIMARY KEY,
+  section_id INT NOT NULL REFERENCES university.section(section_id) ON DELETE CASCADE,
+  day_of_week VARCHAR(10) NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  UNIQUE (section_id, day_of_week, start_time, end_time)
 );
-
--- Initialize seats from section capacity
-INSERT INTO university.section_seat (section_id, capacity, enrolled_count)
-SELECT section_id, capacity, 0 FROM university.section
-ON CONFLICT (section_id) DO NOTHING;
 
 -- Enrollments (linking students to sections)
 CREATE TABLE university.enrollment (

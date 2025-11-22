@@ -1,5 +1,5 @@
 # backend/app.py
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import psycopg2
 import os
@@ -151,7 +151,8 @@ def format_catalog(rows, columns):
                 "section_code": r[idx["section_code"]],
                 "capacity": r[idx["capacity"]],
                 "instructor_id": r[idx["instructor_id"]],
-                "instructor_name": r[idx["instructor_name"]]
+                "instructor_name": r[idx["instructor_name"]],
+                "remaining_slots": r[idx["remaining_slots"]]
             })
 
     # Convert dicts into lists
@@ -173,6 +174,134 @@ def format_catalog(rows, columns):
                 print(f"      - Section {section['section_code']}: {section.get('instructor_name', 'No instructor')}")
     
     return result
+
+@app.route("/api/enroll", methods=["POST"])
+def enroll_student():
+    data = request.get_json()
+    student_id = data.get("student_id")
+    section_id = data.get("section_id")
+
+    if not student_id or not section_id:
+        return jsonify({"success": False, "error": "student_id and section_id are required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        query_capacity = load_sql("enrollment.sql")
+        cur.execute(query_capacity, (section_id,))
+        if cur.rowcount == 0:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "Section is full"}), 409
+
+        query_student_conflicts = load_sql("schedule_conflicts.sql")
+        cur.execute(query_student_conflicts, (section_id,))
+        new_section_schedule = cur.fetchall()
+
+        quary_current_enrollments = load_sql("get_student_schedule_enroll.sql")
+        cur.execute(quary_current_enrollments, (student_id,))
+        current_schedules = cur.fetchall()
+
+        for new_day, new_start, new_end in new_section_schedule:
+            for cur_day, cur_start, cur_end in current_schedules:
+                if new_day == cur_day:
+                    if not (new_end <= cur_start or new_start >= cur_end):
+                        cur.close()
+                        conn.close()
+                        return jsonify({"success": False, "error": "Schedule conflict detected"}), 409
+
+        try:
+            query_insert = load_sql("insert_enrollment.sql")
+            cur.execute(query_insert, (student_id, section_id))
+        except psycopg2.Error:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "error": "Student already enrolled"}), 409
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"success": True, "message": "Enrollment successful"})
+
+    except Exception as e:
+        print("ERROR during enrollment:")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+    
+@app.route("/api/enrolled_courses/<int:student_id>", methods=["GET"])
+def get_enrolled_courses(student_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        query = load_sql("get_enrolled_courses.sql")
+        cur.execute(query, (student_id,))
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+        enrolled_courses = [
+            dict(zip(columns, row)) for row in rows
+        ]
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"success": True, "data": enrolled_courses})
+
+    except Exception as e:
+        print("Error fetching enrolled courses:")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/api/student_schedule", methods=["GET"])
+def get_student_schedule():
+    student_id = request.args.get("student_id")
+    if not student_id:
+        return jsonify({"success": False, "error": "student_id is required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        query = load_sql("get_student_schedule.sql")
+        cur.execute(query, (student_id,))
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+        schedule = {}
+        for r in rows:
+            r_dict = dict(zip(columns, r))
+            section_key = r_dict["section_id"]
+
+            if section_key not in schedule:
+                schedule[section_key] = {
+                    "section_id": r_dict["section_id"],
+                    "section_code": r_dict["section_code"],
+                    "course_id": r_dict["course_id"],
+                    "course_code": r_dict["course_code"],
+                    "course_title": r_dict["course_title"],
+                    "instructor_name": r_dict["instructor_name"],
+                    "meetings": []
+                }
+
+            schedule[section_key]["meetings"].append({
+                "day_of_week": r_dict["day_of_week"],
+                "start_time": str(r_dict["start_time"]),
+                "end_time": str(r_dict["end_time"])
+            })
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"success": True, "data": list(schedule.values())})
+
+    except Exception as e:
+        print("ERROR fetching student schedule:")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": "Internal server error"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
