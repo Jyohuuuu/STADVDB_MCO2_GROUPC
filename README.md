@@ -22,7 +22,7 @@ STADVDB_MCO2_GROUPC/
 ## BEFORE STARTING
 
 ```
-Make sure you have an .env varaible in the backend folder
+Make sure you have an .env varaible in the backend folder, if not the defaults will run
 
 .env contents
 DB_HOST=localhost
@@ -39,13 +39,17 @@ VITE_API_URL=http://localhost:5000
 ## TO START
 
 ```
-1. To start
-docker-compose up --build (make sure you are at root)
+1. To start and build
+docker-compose up --build 
 2. To Stop and Remove Containers
 docker-compose down -v
 
+After building 
+To start: docker-compose up
+To stop: docker-compose down
 ```
 
 ## ACCESS
 
 - **App**: http://localhost:5173
+
