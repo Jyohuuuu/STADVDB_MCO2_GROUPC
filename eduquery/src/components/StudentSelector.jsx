@@ -5,7 +5,9 @@ function StudentSelector({
 	error,
 	onStudentChange,
 	onEnrollmentClick,
+	onAnalyticalReportsClick,
 	onRetry,
+	onRefresh,
 }) {
 	const selectedStudentData = students.find(
 		(s) => s.student_id === parseInt(selectedStudent)
@@ -15,12 +17,30 @@ function StudentSelector({
 		<div className="max-w-2xl mx-auto mb-16">
 			<div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20">
 				<div className="text-center mb-6">
-					<h3 className="text-2xl font-bold text-slate-800 mb-2 font-jakarta">
-						Select a Student
-					</h3>
-					<p className="text-slate-600 font-inter">
-						Choose a student to view their information
-					</p>
+					<div className="flex items-center justify-between mb-4">
+						<div className="flex-1">
+							<h3 className="text-2xl font-bold text-slate-800 mb-2 font-jakarta">
+								Select a Student
+							</h3>
+							<p className="text-slate-600 font-inter">
+								Choose a student to view their information
+							</p>
+						</div>
+						<button
+							onClick={onRefresh}
+							disabled={loading}
+							className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition-all duration-200 font-jakarta disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+						>
+							{loading ? (
+								<>
+									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+									Refreshing...
+								</>
+							) : (
+								<>Refresh</>
+							)}
+						</button>
+					</div>
 				</div>
 
 				{error && (
@@ -88,9 +108,7 @@ function StudentSelector({
 										</span>
 									</div>
 								</div>
-
-								{/* Enrollment Simulation Button */}
-								<div className="pt-4 border-t border-emerald-200">
+								<div className="pt-4 border-t border-emerald-200 space-y-3">
 									<button
 										onClick={onEnrollmentClick}
 										className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg font-jakarta"
@@ -101,6 +119,15 @@ function StudentSelector({
 							</div>
 						</div>
 					)}
+					{/* Analytical Reports */}
+					<div className="mt-6 pt-6 border-t border-gray-200">
+						<button
+							onClick={onAnalyticalReportsClick}
+							className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg font-jakarta flex items-center justify-center gap-2"
+						>
+							View Analytical Reports
+						</button>
+					</div>
 
 					<div className="flex items-center justify-center space-x-4 text-sm text-slate-500">
 						<div className="flex items-center space-x-2">

@@ -5,6 +5,7 @@ import {
 	StudentSelector,
 	EnrollmentView,
 	Sidebar,
+	AnalyticalReports,
 } from "./components";
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
 	const [schedule, setSchedule] = useState([]);
 	const [scheduleLoading, setScheduleLoading] = useState(false);
 	const [scheduleError, setScheduleError] = useState("");
+	const [showAnalyticalReports, setShowAnalyticalReports] = useState(false);
 	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 	useEffect(() => {
@@ -130,7 +132,7 @@ function App() {
 
 	const handleStudentChange = (e) => {
 		setSelectedStudent(e.target.value);
-		setShowEnrollment(false); // will add of comments in the docs
+		setShowEnrollment(false);
 	};
 
 	const handleEnrollmentClick = () => {
@@ -142,6 +144,14 @@ function App() {
 
 	const handleBackToStudents = () => {
 		setShowEnrollment(false);
+	};
+
+	const handleAnalyticalReportsClick = () => {
+		setShowAnalyticalReports(true);
+	};
+
+	const handleBackFromReports = () => {
+		setShowAnalyticalReports(false);
 	};
 
 	const handleTabChange = (newTab) => {
@@ -257,6 +267,75 @@ function App() {
 		}
 	};
 
+	const handleCancelEnrollment = async (sectionId) => {
+		if (!selectedStudent) {
+			setEnrollmentFeedback((prev) => ({
+				...prev,
+				[sectionId]: {
+					type: "error",
+					message: "Please select a student first",
+				},
+			}));
+			return;
+		}
+
+		setEnrollmentLoading((prev) => new Set([...prev, sectionId]));
+		setEnrollmentFeedback((prev) => ({ ...prev, [sectionId]: null }));
+
+		try {
+			const response = await fetch(`${API_URL}/api/cancel_enrollment`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					student_id: selectedStudent,
+					section_id: sectionId,
+				}),
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				setEnrollmentFeedback((prev) => ({
+					...prev,
+					[sectionId]: {
+						type: "success",
+						message: "Enrollment cancelled successfully",
+					},
+				}));
+				fetchEnrolledCourses(selectedStudent);
+				fetchSchedule(selectedStudent);
+			} else {
+				setEnrollmentFeedback((prev) => ({
+					...prev,
+					[sectionId]: {
+						type: "error",
+						message: data.error,
+					},
+				}));
+			}
+		} catch (error) {
+			setEnrollmentFeedback((prev) => ({
+				...prev,
+				[sectionId]: {
+					type: "error",
+					message: "Error connecting to server",
+				},
+			}));
+		} finally {
+			setEnrollmentLoading((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(sectionId);
+				return newSet;
+			});
+
+			setTimeout(() => {
+				setEnrollmentFeedback((prev) => ({ ...prev, [sectionId]: null }));
+			}, 3000);
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
 			<Header showEnrollment={showEnrollment} />
@@ -281,6 +360,7 @@ function App() {
 								expandedSections={expandedSections}
 								onSectionToggle={toggleSection}
 								onEnroll={handleEnroll}
+								onCancelEnrollment={handleCancelEnrollment}
 								enrollmentLoading={enrollmentLoading}
 								enrollmentFeedback={enrollmentFeedback}
 								activeTab={activeTab}
@@ -292,9 +372,24 @@ function App() {
 								scheduleLoading={scheduleLoading}
 								scheduleError={scheduleError}
 								onFetchSchedule={() => fetchSchedule(selectedStudent)}
+								API_URL={API_URL}
 							/>
 						</main>
 					</div>
+				</div>
+			) : showAnalyticalReports ? (
+				<div className="max-w-7xl mx-auto">
+					<main className="px-8 py-12">
+						<div className="mb-8">
+							<button
+								onClick={handleBackFromReports}
+								className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition-all duration-200 font-jakarta flex items-center gap-2"
+							>
+								← Back to Student Selection
+							</button>
+						</div>
+						<AnalyticalReports API_URL={API_URL} />
+					</main>
 				</div>
 			) : (
 				<div className="max-w-7xl mx-auto">
@@ -308,7 +403,9 @@ function App() {
 							error={error}
 							onStudentChange={handleStudentChange}
 							onEnrollmentClick={handleEnrollmentClick}
+							onAnalyticalReportsClick={handleAnalyticalReportsClick}
 							onRetry={fetchStudents}
+							onRefresh={fetchStudents}
 						/>
 					</main>
 				</div>

@@ -10,7 +10,7 @@ function Section({
 
 	return (
 		<div className="bg-white rounded-md border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-200">
-			{/* Section Header - Clickable */}
+			{/* Section Header */}
 			<button
 				onClick={onToggle}
 				className="w-full p-3 text-left hover:bg-slate-50 transition-colors duration-200"
@@ -61,7 +61,6 @@ function Section({
 			{isExpanded && (
 				<div className="px-4 pb-4 border-t border-slate-100 bg-slate-50/50">
 					<div className="pt-3 space-y-4">
-						{/* Professor Info */}
 						<div>
 							<h7 className="text-sm font-semibold text-slate-700 mb-1 font-jakarta block">
 								Instructor
@@ -81,7 +80,6 @@ function Section({
 							</p>
 						</div>
 
-						{/* Description */}
 						<div>
 							<h7 className="text-sm font-semibold text-slate-700 mb-1 font-jakarta block">
 								Description
@@ -117,7 +115,7 @@ function Section({
 							</div>
 						</div>
 
-						{/* Enroll Button */}
+						{/* Enroll */}
 						<div className="pt-2 border-t border-slate-100">
 							<div className="flex items-center justify-between">
 								<button

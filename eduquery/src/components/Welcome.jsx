@@ -8,8 +8,7 @@ function Welcome() {
 				</span>
 			</h2>
 			<p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed font-inter">
-				Your comprehensive university information system designed for the modern
-				academic experience
+				Your comprehensive university information system
 			</p>
 		</div>
 	);

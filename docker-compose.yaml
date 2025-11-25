@@ -1,31 +1,74 @@
 services:
-  postgres:
-    image: postgres:16
+  postgres_oltp:
+    build: ./postgres-oltp
+    container_name: postgres_oltp
     environment:
-      POSTGRES_DB: university
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: university_oltp
+    networks: [edu_network]
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata_oltp:/var/lib/postgresql/data
+
+  postgres_olap:
+    build: ./postgres-olap
+    container_name: postgres_olap
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: university_olap
+    networks: [edu_network]
+    depends_on:
+      postgres_oltp:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_olap:/var/lib/postgresql/data
+
+  data_loader:
+    build: ./data-loader
+    container_name: data_loader
+    environment:
+      PGPASSWORD: password
+    networks: [edu_network]
+    depends_on:
+      postgres_oltp:
+        condition: service_healthy
+      postgres_olap:
+        condition: service_healthy
 
   backend:
     build: ./backend
+    networks:
+      - edu_network
     environment:
-      DB_HOST: postgres
+      DB_HOST: postgres_oltp
       DB_PORT: 5432
-      DB_NAME: university
+      DB_NAME: university_oltp
       DB_USER: postgres
       DB_PASSWORD: password
     depends_on:
-      - postgres
+      - postgres_oltp
     ports:
       - "5000:5000"
 
   frontend:
     build: ./eduquery
+    networks:
+      - edu_network
     ports:
       - "5173:5173"
     environment:
@@ -34,4 +77,9 @@ services:
       - backend
 
 volumes:
-  pgdata:
+  pgdata_oltp:
+  pgdata_olap:
+
+networks:
+  edu_network:
+    driver: bridge

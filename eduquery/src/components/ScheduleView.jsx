@@ -142,8 +142,8 @@ const ScheduleView = ({ scheduleData }) => {
 						{timeSlots.map((timeSlot, timeIndex) => (
 							<div
 								key={timeSlot.value}
-								className="h-12 text-xs text-gray-500 p-2 border-b border-gray-100 flex items-center justify-center"
-								style={{ minHeight: "48px" }}
+								className="h-9 text-xs text-gray-500 p-2 border-b border-gray-100 flex items-center justify-center"
+								style={{ minHeight: "36px" }}
 							>
 								{timeIndex % 4 === 0 ? timeSlot.display : ""}
 							</div>
@@ -180,22 +180,14 @@ const ScheduleView = ({ scheduleData }) => {
 										return (
 											<div
 												key={`${day}-${timeSlot.value}`}
-												className="relative h-12 border-b border-gray-100 p-1"
-												style={{ minHeight: "48px" }}
+												className="relative h-9 border-b border-gray-100 p-1"
+												style={{ minHeight: "36px" }}
 											>
-												{/* Debug: Log courses in slot */}
-												{coursesInSlot.length > 0 &&
-													console.log(
-														`Found ${coursesInSlot.length} course(s) for ${day} at ${timeSlot.value}:`,
-														coursesInSlot
-													)}
-
 												{/* Course blocks */}
 												{coursesInSlot.map((course, idx) => {
 													const blockInfo = getCourseBlockInfo(course, day);
 													if (!blockInfo) return null;
 
-													// Only render course block at its start time
 													const courseStartMinutes = timeToMinutes(
 														blockInfo.startTime
 													);
@@ -204,12 +196,11 @@ const ScheduleView = ({ scheduleData }) => {
 													if (courseStartMinutes !== slotMinutes) return null;
 
 													// Calculate height based on duration
-													// Each 15-min slot = 48px, so 1 hour = 4 slots = 192px
+													// Each 15-min slot = 36px, so 1 hour = 4 slots = 144px
 													const heightInPixels = Math.max(
-														48,
-														(blockInfo.duration / 60) * 192
+														36,
+														(blockInfo.duration / 60) * 144
 													);
-
 													return (
 														<div
 															key={`${course.section_id}-${idx}`}

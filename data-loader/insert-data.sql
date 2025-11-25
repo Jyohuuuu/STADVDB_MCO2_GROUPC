@@ -1,138 +1,4 @@
--- ill leave lots of comments in the docs for easier understanding
-CREATE SCHEMA IF NOT EXISTS university;
-
--- ==========================
--- OLTP TABLES (Transactional)
--- ==========================
-CREATE TABLE university.department (
-  dept_id SERIAL PRIMARY KEY,
-  code VARCHAR(10) UNIQUE NOT NULL,
-  name TEXT NOT NULL
-);
-
--- Instructors
-CREATE TABLE university.instructor (
-  instructor_id SERIAL PRIMARY KEY,
-  dept_id INT NOT NULL REFERENCES university.department(dept_id) ON DELETE CASCADE,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL
-);
-
--- Students
-CREATE TABLE university.student (
-  student_id SERIAL PRIMARY KEY,
-  student_number VARCHAR(20) UNIQUE NOT NULL,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL
-);
-
-CREATE INDEX idx_student_email ON university.student(email);
-
--- Courses (catalog)
-CREATE TABLE university.course (
-  course_id SERIAL PRIMARY KEY,
-  dept_id INT NOT NULL REFERENCES university.department(dept_id) ON DELETE CASCADE,
-  code VARCHAR(20) NOT NULL,
-  title TEXT NOT NULL,
-  credits NUMERIC(3,1) NOT NULL,
-  UNIQUE(dept_id, code)
-);
-
--- Sections (scheduled offerings)
-CREATE TABLE university.section (
-  section_id SERIAL PRIMARY KEY,
-  course_id INT NOT NULL REFERENCES university.course(course_id) ON DELETE CASCADE,
-  section_code VARCHAR(16) NOT NULL,
-  instructor_id INT REFERENCES university.instructor(instructor_id) ON DELETE SET NULL,
-  capacity INT NOT NULL CHECK (capacity >= 0),
-  remaining_slots INT NOT NULL CHECK (remaining_slots >= 0),
-  UNIQUE (course_id, section_code)
-);
-
-CREATE TABLE university.section_schedule (
-  schedule_id SERIAL PRIMARY KEY,
-  section_id INT NOT NULL REFERENCES university.section(section_id) ON DELETE CASCADE,
-  day_of_week VARCHAR(10) NOT NULL,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  UNIQUE (section_id, day_of_week, start_time, end_time)
-);
-
-
--- Enrollments (linking students to sections)
-CREATE TABLE university.enrollment (
-  enrollment_id SERIAL PRIMARY KEY,
-  student_id INT NOT NULL REFERENCES university.student(student_id) ON DELETE CASCADE,
-  section_id INT NOT NULL REFERENCES university.section(section_id) ON DELETE CASCADE,
-  UNIQUE (student_id, section_id)
-);
-
-CREATE INDEX idx_enrollment_section ON university.enrollment(section_id);
-CREATE INDEX idx_enrollment_student ON university.enrollment(student_id);
-
--- ==========================
--- OLAP TABLES (Analytical)
--- ==========================
-
--- Department Dimension
-CREATE TABLE IF NOT EXISTS university.dim_department (
-  dept_key SERIAL PRIMARY KEY,
-  dept_id INT,
-  dept_name TEXT,
-  dept_code VARCHAR(10)
-);
-
--- Instructor Dimension
-CREATE TABLE IF NOT EXISTS university.dim_instructor (
-  instructor_key SERIAL PRIMARY KEY,
-  instructor_id INT,
-  full_name TEXT,
-  email VARCHAR(100),
-  dept_key INT REFERENCES university.dim_department(dept_key)
-);
-
--- Course Dimension
-CREATE TABLE IF NOT EXISTS university.dim_course (
-  course_key SERIAL PRIMARY KEY,
-  course_id INT,
-  course_code VARCHAR(20),
-  course_title TEXT,
-  credits NUMERIC(3,1),
-  dept_key INT REFERENCES university.dim_department(dept_key)
-);
-
--- Section Dimension
-CREATE TABLE IF NOT EXISTS university.dim_section (
-  section_key SERIAL PRIMARY KEY,
-  section_id INT,
-  section_code VARCHAR(16),
-  capacity INT,
-  instructor_key INT REFERENCES university.dim_instructor(instructor_key),
-  course_key INT REFERENCES university.dim_course(course_key)
-);
-
--- Student Dimension
-CREATE TABLE IF NOT EXISTS university.dim_student (
-  student_key SERIAL PRIMARY KEY,
-  student_id INT,
-  student_number VARCHAR(20),
-  full_name TEXT,
-  email VARCHAR(100)
-);
-
--- Fact Table
-CREATE TABLE IF NOT EXISTS university.fact_enrollment (
-  enrollment_key SERIAL PRIMARY KEY,
-  student_key INT REFERENCES university.dim_student(student_key),
-  section_key INT REFERENCES university.dim_section(section_key),
-  course_key INT REFERENCES university.dim_course(course_key),
-  instructor_key INT REFERENCES university.dim_instructor(instructor_key),
-  dept_key INT REFERENCES university.dim_department(dept_key)
-);
-
-INSERT INTO university.department (code, name) VALUES
+INSERT INTO university_oltp.department (code, name) VALUES
 ('CS', 'Computer Science'),
 ('ENG', 'Engineering'),
 ('BIO', 'Biology'),
@@ -145,7 +11,7 @@ INSERT INTO university.department (code, name) VALUES
 ('MATH', 'Mathematics')
 ON CONFLICT (code) DO NOTHING;
 
-INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
+INSERT INTO university_oltp.instructor (dept_id, first_name, last_name, email) VALUES
 (1, 'Alice', 'Reyes', 'alice.reyes@univ.edu'), -- ins_id 1
 (1, 'Bob', 'Tan', 'bob.tan@univ.edu'), -- ins_id 2
 (2, 'Clara', 'Dela Cruz', 'clara@univ.edu'),
@@ -220,7 +86,7 @@ INSERT INTO university.instructor (dept_id, first_name, last_name, email) VALUES
 (10, 'Theresa', 'Stewart', 'theresa.stewart@univ.edu')
 ON CONFLICT (email) DO NOTHING;
 
-INSERT INTO university.student (student_number, first_name, last_name, email) VALUES
+INSERT INTO university_oltp.student (student_number, first_name, last_name, email) VALUES
 ('S1001', 'Julian', 'Briones', 'julian.briones@univ.edu'),
 ('S1002', 'Ella', 'Dela Cruz', 'ella.dela.cruz@univ.edu'),
 ('S1003', 'Mark', 'Villanueva', 'mark.villanueva@univ.edu'),
@@ -323,7 +189,7 @@ INSERT INTO university.student (student_number, first_name, last_name, email) VA
 ('S1100', 'Kinsley', 'Cook', 'kinsley.cook@univ.edu')
 ON CONFLICT (student_number) DO NOTHING;
 
-INSERT INTO university.course (dept_id, code, title, credits) VALUES
+INSERT INTO university_oltp.course (dept_id, code, title, credits) VALUES
 (1,'CS101','Intro to Programming',3.0),
 (1,'CS102','Data Structures',3.0),
 (1,'CS201','Algorithms',3.0),
@@ -385,7 +251,7 @@ INSERT INTO university.course (dept_id, code, title, credits) VALUES
 (10,'MATH301','Linear Algebra',3.0)
 ON CONFLICT (dept_id, code) DO NOTHING;
 
-INSERT INTO university.section (course_id, section_code, instructor_id, capacity, remaining_slots) VALUES
+INSERT INTO university_oltp.section (course_id, section_code, instructor_id, capacity, remaining_slots) VALUES
 (1, 'A', 1, 40, 40),
 (1, 'B', 1, 40, 40),
 (1, 'C', 2, 40, 40),
@@ -637,40 +503,506 @@ INSERT INTO university.section (course_id, section_code, instructor_id, capacity
 (50, 'D', 72, 25, 25)
 ON CONFLICT (course_id, section_code) DO NOTHING;
 
-INSERT INTO university.section_schedule (section_id, day_of_week, start_time, end_time) VALUES
+INSERT INTO university_oltp.section_schedule (section_id, day_of_week, start_time, end_time) VALUES
 (1, 'Monday', '07:30', '09:00'),
-(1, 'Tuesday', '07:30', '09:00'),
+(1, 'Thursday', '07:30', '09:00'),
 (2, 'Monday', '07:30', '09:00'),
-(2, 'Tuesday', '07:30', '09:00'),
+(2, 'Thursday', '07:30', '09:00'),
 (3, 'Monday', '07:30', '09:00'),
-(3, 'Tuesday', '07:30', '09:00'),
+(3, 'Thursday', '07:30', '09:00'),
 (4, 'Monday', '07:30', '09:00'),
-(4, 'Tuesday', '07:30', '09:00'),
+(4, 'Thursday', '07:30', '09:00'),
 
-(5, 'Monday', '10:15', '11:45'),
-(5, 'Tuesday', '10:15', '11:45'),
-(6, 'Monday', '10:15', '11:45'),
-(6, 'Tuesday', '10:15', '11:45'),
-(7, 'Monday', '10:15', '11:45'),
-(7, 'Tuesday', '10:15', '11:45'),
-(8, 'Monday', '10:15', '11:45'),
-(8, 'Tuesday', '10:15', '11:45'),
+--Data Structures Schedules
+(5, 'Monday', '9:15', '10:45'),
+(5, 'Thursday', '9:15', '10:45'),
+(6, 'Monday', '9:15', '10:45'),
+(6, 'Thursday', '9:15', '10:45'),
+(7, 'Monday', '9:15', '10:45'),
+(7, 'Thursday', '9:15', '10:45'),
+(8, 'Monday', '9:15', '10:45'),
+(8, 'Thursday', '9:15', '10:45'),
 
-(9, 'Monday', '12:00', '13:30'),
-(9, 'Tuesday', '12:00', '13:30'),
-(10, 'Monday', '12:00', '13:30'),
-(10, 'Tuesday', '12:00', '13:30'),
-(11, 'Monday', '12:00', '13:30'),
-(11, 'Tuesday', '12:00', '13:30'),
-(12, 'Monday', '12:00', '13:30'),
-(12, 'Tuesday', '12:00', '13:30'),
+-- Algorithms Schedules
+(9, 'Monday', '11:00', '12:30'),
+(9, 'Thursday', '11:00', '12:30'),
+(10, 'Monday', '11:00', '12:30'),
+(10, 'Thursday', '11:00', '12:30'),
+(11, 'Monday', '11:00', '12:30'),
+(11, 'Thursday', '11:00', '12:30'),
+(12, 'Monday', '11:00', '12:30'),
+(12, 'Thursday', '11:00', '12:30'),
 
-(13, 'Monday', '13:45', '15:15'),
-(13, 'Tuesday', '13:45', '15:15'),
-(14, 'Monday', '13:45', '15:30'),
-(14, 'Tuesday', '13:45', '15:30'),
-(15, 'Monday', '13:45', '15:30'),
-(15, 'Tuesday', '13:45', '15:30'),
-(16, 'Monday', '13:45', '15:30'),
-(16, 'Tuesday', '13:45', '15:30')
+-- Computer Architecture Schedules
+(13, 'Monday', '12:45', '14:15'),
+(13, 'Thursday', '12:45', '14:15'),
+(14, 'Monday', '12:45', '14:15'),
+(14, 'Thursday', '12:45', '14:15'),
+(15, 'Monday', '12:45', '14:15'),
+(15, 'Thursday', '12:45', '14:15'),
+(16, 'Monday', '12:45', '14:15'),
+(16, 'Thursday', '12:45', '14:15'),
+
+-- Operating Systems Schedules
+(17, 'Monday', '14:30', '16:00'),
+(17, 'Thursday', '14:30', '16:00'),
+(18, 'Monday', '14:30', '16:00'),
+(18, 'Thursday', '14:30', '16:00'),
+(19, 'Monday', '14:30', '16:00'),
+(19, 'Thursday', '14:30', '16:00'),
+(20, 'Monday', '14:30', '16:00'),
+(20, 'Thursday', '14:30', '16:00'),
+
+-- Statics Schedules
+(21, 'Monday', '16:15', '17:45'),
+(21, 'Thursday', '16:15', '17:45'),
+(22, 'Monday', '16:15', '17:45'),
+(22, 'Thursday', '16:15', '17:45'),
+(23, 'Monday', '16:15', '17:45'),
+(23, 'Thursday', '16:15', '17:45'),
+(24, 'Monday', '16:15', '17:45'),
+(24, 'Thursday', '16:15', '17:45'),
+
+-- Dynamics Schedules
+(25, 'Monday', '18:00', '19:30'),
+(25, 'Thursday', '18:00', '19:30'),
+(26, 'Monday', '18:00', '19:30'),
+(26, 'Thursday', '18:00', '19:30'),
+(27, 'Monday', '18:00', '19:30'),
+(27, 'Thursday', '18:00', '19:30'),
+(28, 'Monday', '18:00', '19:30'),
+(28, 'Thursday', '18:00', '19:30'),
+
+-- Thermodynamics Schedules
+(29, 'Monday', '19:45', '21:15'),
+(29, 'Thursday', '19:45', '21:15'),
+(30, 'Monday', '19:45', '21:15'),
+(30, 'Thursday', '19:45', '21:15'),
+(31, 'Monday', '19:45', '21:15'),
+(31, 'Thursday', '19:45', '21:15'),
+(32, 'Monday', '19:45', '21:15'),
+(32, 'Thursday', '19:45', '21:15'),
+
+-- Fluid Mechanics Schedules
+(33, 'Tuesday', '7:30', '9:00'),
+(33, 'Friday', '7:30', '9:00'),
+(34, 'Tuesday', '7:30', '9:00'),
+(34, 'Friday', '7:30', '9:00'),
+(35, 'Tuesday', '7:30', '9:00'),
+(35, 'Friday', '7:30', '9:00'),
+(36, 'Tuesday', '7:30', '9:00'),
+(36, 'Friday', '7:30', '9:00'),
+
+-- Engineering Materials Schedules
+(37, 'Friday', '9:15', '10:45'),
+(37, 'Tuesday', '9:15', '10:45'),
+(38, 'Friday', '9:15', '10:45'),
+(38, 'Tuesday', '9:15', '10:45'),
+(39, 'Friday', '9:15', '10:45'),
+(39, 'Tuesday', '9:15', '10:45'),
+(40, 'Friday', '9:15', '10:45'),
+(40, 'Tuesday', '9:15', '10:45'),
+
+-- General Biology Schedules
+(41, 'Tuesday', '11:00', '12:30'),
+(41, 'Friday', '11:00', '12:30'),
+(42, 'Tuesday', '11:00', '12:30'),
+(42, 'Friday', '11:00', '12:30'),
+(43, 'Tuesday', '11:00', '12:30'),
+(43, 'Friday', '11:00', '12:30'),
+(44, 'Tuesday', '11:00', '12:30'),
+(44, 'Friday', '11:00', '12:30'),
+
+-- Cell Biology Schedules
+(45, 'Tuesday', '12:45', '14:15'),
+(45, 'Friday', '12:45', '14:15'),
+(46, 'Tuesday', '12:45', '14:15'),
+(46, 'Friday', '12:45', '14:15'),
+(47, 'Tuesday', '12:45', '14:15'),
+(47, 'Friday', '12:45', '14:15'),
+(48, 'Tuesday', '12:45', '14:15'),
+(48, 'Friday', '12:45', '14:15'),
+
+-- Genetics Schedules
+(49, 'Tuesday', '14:30', '16:00'),
+(49, 'Friday', '14:30', '16:00'),
+(50, 'Tuesday', '14:30', '16:00'),
+(50, 'Friday', '14:30', '16:00'),
+(51, 'Tuesday', '14:30', '16:00'),
+(51, 'Friday', '14:30', '16:00'),
+(52, 'Tuesday', '14:30', '16:00'),
+(52, 'Friday', '14:30', '16:00'),
+
+-- Microbiology Schedules
+(53, 'Tuesday', '16:15', '17:45'),
+(53, 'Friday', '16:15', '17:45'),
+(54, 'Tuesday', '16:15', '17:45'),
+(54, 'Friday', '16:15', '17:45'),
+(55, 'Tuesday', '16:15', '17:45'),
+(55, 'Friday', '16:15', '17:45'),
+(56, 'Tuesday', '16:15', '17:45'),
+(56, 'Friday', '16:15', '17:45'),
+
+-- Molecular Biology Schedules
+(57, 'Tuesday', '18:00', '19:30'),
+(57, 'Friday', '18:00', '19:30'),
+(58, 'Tuesday', '18:00', '19:30'),
+(58, 'Friday', '18:00', '19:30'),
+(59, 'Tuesday', '18:00', '19:30'),
+(59, 'Friday', '18:00', '19:30'),
+(60, 'Tuesday', '18:00', '19:30'),
+(60, 'Friday', '18:00', '19:30'),
+
+-- General Chemistry Schedules
+(61, 'Tuesday', '19:45', '21:15'),
+(61, 'Friday', '19:45', '21:15'),
+(62, 'Tuesday', '19:45', '21:15'),
+(62, 'Friday', '19:45', '21:15'),
+(63, 'Tuesday', '19:45', '21:15'),
+(63, 'Friday', '19:45', '21:15'),
+(64, 'Tuesday', '19:45', '21:15'),
+(64, 'Friday', '19:45', '21:15'),
+
+-- Organic Chemistry Schedules
+(65, 'Wednesday', '7:30', '9:00'),
+(65, 'Saturday', '7:30', '9:00'),
+(66, 'Wednesday', '7:30', '9:00'),
+(66, 'Saturday', '7:30', '9:00'),
+(67, 'Wednesday', '7:30', '9:00'),
+(67, 'Saturday', '7:30', '9:00'),
+(68, 'Wednesday', '7:30', '9:00'),
+(68, 'Saturday', '7:30', '9:00'),
+
+-- Physical Chemistry Schedules
+(69, 'Wednesday', '9:15', '10:45'),
+(69, 'Saturday', '9:15', '10:45'),
+(70, 'Wednesday', '9:15', '10:45'),
+(70, 'Saturday', '9:15', '10:45'),
+(71, 'Wednesday', '9:15', '10:45'),
+(71, 'Saturday', '9:15', '10:45'),
+(72, 'Wednesday', '9:15', '10:45'),
+(72, 'Saturday', '9:15', '10:45'),
+
+-- Analytical Chemistry Schedules
+(73, 'Wednesday', '11:00', '12:30'),
+(73, 'Saturday', '11:00', '12:30'),
+(74, 'Wednesday', '11:00', '12:30'),
+(74, 'Saturday', '11:00', '12:30'),
+(75, 'Wednesday', '11:00', '12:30'),
+(75, 'Saturday', '11:00', '12:30'),
+(76, 'Wednesday', '11:00', '12:30'),
+(76, 'Saturday', '11:00', '12:30'),
+
+-- Biochemistry Schedules
+(77, 'Wednesday', '12:45', '14:15'),
+(77, 'Saturday', '12:45', '14:15'),
+(78, 'Wednesday', '12:45', '14:15'),
+(78, 'Saturday', '12:45', '14:15'),
+(79, 'Wednesday', '12:45', '14:15'),
+(79, 'Saturday', '12:45', '14:15'),
+(80, 'Wednesday', '12:45', '14:15'),
+(80, 'Saturday', '12:45', '14:15'),
+
+-- Classical Mechanics Schedules
+(81, 'Wednesday', '14:30', '16:00'),
+(81, 'Saturday', '14:30', '16:00'),
+(82, 'Wednesday', '14:30', '16:00'),
+(82, 'Saturday', '14:30', '16:00'),
+(83, 'Wednesday', '14:30', '16:00'),
+(83, 'Saturday', '14:30', '16:00'),
+(84, 'Wednesday', '14:30', '16:00'),
+(84, 'Saturday', '14:30', '16:00'),
+
+-- Electromagnetism Schedules
+(85, 'Wednesday', '16:15', '17:45'),
+(85, 'Saturday', '16:15', '17:45'),
+(86, 'Wednesday', '16:15', '17:45'),
+(86, 'Saturday', '16:15', '17:45'),
+(87, 'Wednesday', '16:15', '17:45'),
+(87, 'Saturday', '16:15', '17:45'),
+(88, 'Wednesday', '16:15', '17:45'),
+(88, 'Saturday', '16:15', '17:45'),
+
+-- Quantum Physics Schedules
+(89, 'Wednesday', '18:00', '19:30'),
+(89, 'Saturday', '18:00', '19:30'),
+(90, 'Wednesday', '18:00', '19:30'),
+(90, 'Saturday', '18:00', '19:30'),
+(91, 'Wednesday', '18:00', '19:30'),
+(91, 'Saturday', '18:00', '19:30'),
+(92, 'Wednesday', '18:00', '19:30'),
+(92, 'Saturday', '18:00', '19:30'),
+
+-- Thermodynamics Schedules
+(93, 'Wednesday', '19:45', '21:15'),
+(93, 'Saturday', '19:45', '21:15'),
+(94, 'Wednesday', '19:45', '21:15'),
+(94, 'Saturday', '19:45', '21:15'),
+(95, 'Wednesday', '19:45', '21:15'),
+(95, 'Saturday', '19:45', '21:15'),
+(96, 'Wednesday', '19:45', '21:15'),
+(96, 'Saturday', '19:45', '21:15'),
+
+-- Optics Schedules
+(97, 'Monday', '7:30', '9:00'),
+(97, 'Thursday', '7:30', '9:00'),
+(98, 'Monday', '7:30', '9:00'),
+(98, 'Thursday', '7:30', '9:00'),
+(99, 'Monday', '7:30', '9:00'),
+(99, 'Thursday', '7:30', '9:00'),
+(100, 'Monday', '7:30', '9:00'),
+(100, 'Thursday', '7:30', '9:00'),
+
+-- World Literature Schedules
+(101, 'Monday', '9:15', '10:45'),
+(101, 'Thursday', '9:15', '10:45'),
+(102, 'Monday', '9:15', '10:45'),
+(102, 'Thursday', '9:15', '10:45'),
+(103, 'Monday', '9:15', '10:45'),
+(103, 'Thursday', '9:15', '10:45'),
+(104, 'Monday', '9:15', '10:45'),
+(104, 'Thursday', '9:15', '10:45'),
+
+-- Creative Writing Schedules
+(105, 'Monday', '11:00', '12:30'),
+(105, 'Thursday', '11:00', '12:30'),
+(106, 'Monday', '11:00', '12:30'),
+(106, 'Thursday', '11:00', '12:30'),
+(107, 'Monday', '11:00', '12:30'),
+(107, 'Thursday', '11:00', '12:30'),
+(108, 'Monday', '11:00', '12:30'),
+(108, 'Thursday', '11:00', '12:30'),
+
+-- Philosophy Schedules
+(109, 'Monday', '12:45', '14:15'),
+(109, 'Thursday', '12:45', '14:15'),
+(110, 'Monday', '12:45', '14:15'),
+(110, 'Thursday', '12:45', '14:15'),
+(111, 'Monday', '12:45', '14:15'),
+(111, 'Thursday', '12:45', '14:15'),
+(112, 'Monday', '12:45', '14:15'),
+(112, 'Thursday', '12:45', '14:15'),
+
+-- Ethics Schedules
+(113, 'Monday', '14:30', '16:00'),
+(113, 'Thursday', '14:30', '16:00'),
+(114, 'Monday', '14:30', '16:00'),
+(114, 'Thursday', '14:30', '16:00'),
+(115, 'Monday', '14:30', '16:00'),
+(115, 'Thursday', '14:30', '16:00'),
+(116, 'Monday', '14:30', '16:00'),
+(116, 'Thursday', '14:30', '16:00'),
+
+-- Humanities Seminar Schedules
+(117, 'Monday', '16:15', '17:45'),
+(117, 'Thursday', '16:15', '17:45'),
+(118, 'Monday', '16:15', '17:45'),
+(118, 'Thursday', '16:15', '17:45'),
+(119, 'Monday', '16:15', '17:45'),
+(119, 'Thursday', '16:15', '17:45'),
+(120, 'Monday', '16:15', '17:45'),
+(120, 'Thursday', '16:15', '17:45'),
+
+-- Music Theory Schedules
+(121, 'Monday', '18:00', '19:30'),
+(121, 'Thursday', '18:00', '19:30'),
+(122, 'Monday', '18:00', '19:30'),
+(122, 'Thursday', '18:00', '19:30'),
+(123, 'Monday', '18:00', '19:30'),
+(123, 'Thursday', '18:00', '19:30'),
+(124, 'Monday', '18:00', '19:30'),
+(124, 'Thursday', '18:00', '19:30'),
+
+-- Music History Schedules
+(125, 'Monday', '19:45', '21:15'),
+(125, 'Thursday', '19:45', '21:15'),
+(126, 'Monday', '19:45', '21:15'),
+(126, 'Thursday', '19:45', '21:15'),
+(127, 'Monday', '19:45', '21:15'),
+(127, 'Thursday', '19:45', '21:15'),
+(128, 'Monday', '19:45', '21:15'),
+(128, 'Thursday', '19:45', '21:15'),
+
+-- Composition Schedules
+(129, 'Tuesday', '7:30', '9:00'),
+(129, 'Friday', '7:30', '9:00'),
+(130, 'Tuesday', '7:30', '9:00'),
+(130, 'Friday', '7:30', '9:00'),
+(131, 'Tuesday', '7:30', '9:00'),
+(131, 'Friday', '7:30', '9:00'),
+(132, 'Tuesday', '7:30', '9:00'),
+(132, 'Friday', '7:30', '9:00'),
+
+-- Conducting Schedules
+(133, 'Tuesday', '9:15', '10:45'),
+(133, 'Friday', '9:15', '10:45'),
+(134, 'Tuesday', '9:15', '10:45'),
+(134, 'Friday', '9:15', '10:45'),
+(135, 'Tuesday', '9:15', '10:45'),
+(135, 'Friday', '9:15', '10:45'),
+(136, 'Tuesday', '9:15', '10:45'),
+(136, 'Friday', '9:15', '10:45'),
+
+-- Advanced Performance Schedules
+(137, 'Tuesday', '11:00', '12:30'),
+(137, 'Friday', '11:00', '12:30'),
+(138, 'Tuesday', '11:00', '12:30'),
+(138, 'Friday', '11:00', '12:30'),
+(139, 'Tuesday', '11:00', '12:30'),
+(139, 'Friday', '11:00', '12:30'),
+(140, 'Tuesday', '11:00', '12:30'),
+(140, 'Friday', '11:00', '12:30'),
+
+-- Drawing I Schedules
+(141, 'Tuesday', '12:45', '14:15'),
+(141, 'Friday', '12:45', '14:15'),
+(142, 'Tuesday', '12:45', '14:15'),
+(142, 'Friday', '12:45', '14:15'),
+(143, 'Tuesday', '12:45', '14:15'),
+(143, 'Friday', '12:45', '14:15'),
+(144, 'Tuesday', '12:45', '14:15'),
+(144, 'Friday', '12:45', '14:15'),
+
+-- Painting I Schedules
+(145, 'Tuesday', '14:30', '16:00'),
+(145, 'Friday', '14:30', '16:00'),
+(146, 'Tuesday', '14:30', '16:00'),
+(146, 'Friday', '14:30', '16:00'),
+(147, 'Tuesday', '14:30', '16:00'),
+(147, 'Friday', '14:30', '16:00'),
+(148, 'Tuesday', '14:30', '16:00'),
+(148, 'Friday', '14:30', '16:00'),
+
+-- Sculpture Schedules
+(149, 'Tuesday', '16:15', '17:45'),
+(149, 'Friday', '16:15', '17:45'),
+(150, 'Tuesday', '16:15', '17:45'),
+(150, 'Friday', '16:15', '17:45'),
+(151, 'Tuesday', '16:15', '17:45'),
+(151, 'Friday', '16:15', '17:45'),
+(152, 'Tuesday', '16:15', '17:45'),
+(152, 'Friday', '16:15', '17:45'),
+
+-- Digital Arts Schedules
+(153, 'Tuesday', '18:00', '19:30'),
+(153, 'Friday', '18:00', '19:30'),
+(154, 'Tuesday', '18:00', '19:30'),
+(154, 'Friday', '18:00', '19:30'),
+(155, 'Tuesday', '18:00', '19:30'),
+(155, 'Friday', '18:00', '19:30'),
+(156, 'Tuesday', '18:00', '19:30'),
+(156, 'Friday', '18:00', '19:30'),
+
+-- Advanced Studio Schedules
+(157, 'Tuesday', '19:45', '21:15'),
+(157, 'Friday', '19:45', '21:15'),
+(158, 'Tuesday', '19:45', '21:15'),
+(158, 'Friday', '19:45', '21:15'),
+(159, 'Tuesday', '19:45', '21:15'),
+(159, 'Friday', '19:45', '21:15'),
+(160, 'Tuesday', '19:45', '21:15'),
+(160, 'Friday', '19:45', '21:15'),
+
+-- Foundations of Education Schedules
+(161, 'Wednesday', '7:30', '9:00'),
+(161, 'Saturday', '7:30', '9:00'),
+(162, 'Wednesday', '7:30', '9:00'),
+(162, 'Saturday', '7:30', '9:00'),
+(163, 'Wednesday', '7:30', '9:00'),
+(163, 'Saturday', '7:30', '9:00'),
+(164, 'Wednesday', '7:30', '9:00'),
+(164, 'Saturday', '7:30', '9:00'),
+
+-- Educational Psychology Schedules
+(165, 'Wednesday', '9:15', '10:45'),
+(165, 'Saturday', '9:15', '10:45'),
+(166, 'Wednesday', '9:15', '10:45'),
+(166, 'Saturday', '9:15', '10:45'),
+(167, 'Wednesday', '9:15', '10:45'),
+(167, 'Saturday', '9:15', '10:45'),
+(168, 'Wednesday', '9:15', '10:45'),
+(168, 'Saturday', '9:15', '10:45'),
+
+-- Assessment of Learning Schedules
+(169, 'Wednesday', '11:00', '12:30'),
+(169, 'Saturday', '11:00', '12:30'),
+(170, 'Wednesday', '11:00', '12:30'),
+(170, 'Saturday', '11:00', '12:30'),
+(171, 'Wednesday', '11:00', '12:30'),
+(171, 'Saturday', '11:00', '12:30'),
+(172, 'Wednesday', '11:00', '12:30'),
+(172, 'Saturday', '11:00', '12:30'),
+
+-- Curriculum Development Schedules
+(173, 'Wednesday', '12:45', '14:15'),
+(173, 'Saturday', '12:45', '14:15'),
+(174, 'Wednesday', '12:45', '14:15'),
+(174, 'Saturday', '12:45', '14:15'),
+(175, 'Wednesday', '12:45', '14:15'),
+(175, 'Saturday', '12:45', '14:15'),
+(176, 'Wednesday', '12:45', '14:15'),
+(176, 'Saturday', '12:45', '14:15'),
+
+-- Teaching Strategies Schedules
+(177, 'Wednesday', '14:30', '16:00'),
+(177, 'Saturday', '14:30', '16:00'),
+(178, 'Wednesday', '14:30', '16:00'),
+(178, 'Saturday', '14:30', '16:00'),
+(179, 'Wednesday', '14:30', '16:00'),
+(179, 'Saturday', '14:30', '16:00'),
+(180, 'Wednesday', '14:30', '16:00'),
+(180, 'Saturday', '14:30', '16:00'),
+
+-- College Algebra Schedules
+(181, 'Wednesday', '16:15', '17:45'),
+(181, 'Saturday', '16:15', '17:45'),
+(182, 'Wednesday', '16:15', '17:45'),
+(182, 'Saturday', '16:15', '17:45'),
+(183, 'Wednesday', '16:15', '17:45'),
+(183, 'Saturday', '16:15', '17:45'),
+(184, 'Wednesday', '16:15', '17:45'),
+(184, 'Saturday', '16:15', '17:45'),
+
+-- Trigonometry Schedules
+(185, 'Wednesday', '18:00', '19:30'),
+(185, 'Saturday', '18:00', '19:30'),
+(186, 'Wednesday', '18:00', '19:30'),
+(186, 'Saturday', '18:00', '19:30'),
+(187, 'Wednesday', '18:00', '19:30'),
+(187, 'Saturday', '18:00', '19:30'),
+(188, 'Wednesday', '18:00', '19:30'),
+(188, 'Saturday', '18:00', '19:30'),
+
+-- Calculus I Schedules
+(189, 'Wednesday', '19:45', '21:15'),
+(189, 'Saturday', '19:45', '21:15'),
+(190, 'Wednesday', '19:45', '21:15'),
+(190, 'Saturday', '19:45', '21:15'),
+(191, 'Wednesday', '19:45', '21:15'),
+(191, 'Saturday', '19:45', '21:15'),
+(192, 'Wednesday', '19:45', '21:15'),
+(192, 'Saturday', '19:45', '21:15'),
+
+-- Calculus II Schedules
+(193, 'Monday', '7:30', '9:00'),
+(193, 'Thursday', '7:30', '9:00'),
+(194, 'Monday', '7:30', '9:00'),
+(194, 'Thursday', '7:30', '9:00'),
+(195, 'Monday', '7:30', '9:00'),
+(195, 'Thursday', '7:30', '9:00'),
+(196, 'Monday', '7:30', '9:00'),
+(196, 'Thursday', '7:30', '9:00'),
+
+-- Linear Algebra Schedules
+(197, 'Monday', '9:15', '10:45'),
+(197, 'Thursday', '9:15', '10:45'),
+(198, 'Monday', '9:15', '10:45'),
+(198, 'Thursday', '9:15', '10:45'),
+(199, 'Monday', '9:15', '10:45'),
+(199, 'Thursday', '9:15', '10:45'),
+(200, 'Monday', '9:15', '10:45'),
+(200, 'Thursday', '9:15', '10:45')
+
+
+
 ON CONFLICT (section_id, day_of_week, start_time, end_time) DO NOTHING;

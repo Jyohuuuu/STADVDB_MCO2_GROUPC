@@ -14,7 +14,7 @@ function Department({
 }) {
 	return (
 		<div className="border border-slate-200 rounded-xl overflow-hidden">
-			{/* Department Header - Clickable */}
+			{/* Department Header */}
 			<button
 				onClick={onToggle}
 				className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white p-4 text-left transition-all duration-200"
@@ -45,8 +45,6 @@ function Department({
 					</div>
 				</div>
 			</button>
-
-			{/* Courses - Collapsible */}
 			{isOpen && (
 				<div className="p-4 space-y-3 bg-slate-50/50">
 					{department.courses.length === 0 ? (

@@ -28,7 +28,7 @@ function Course({
 
 	return (
 		<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-			{/* Course Header - Clickable */}
+			{/* Course Header */}
 			<button
 				onClick={onToggle}
 				className="w-full p-4 text-left hover:bg-slate-50 transition-colors duration-200"
@@ -71,8 +71,6 @@ function Course({
 					</svg>
 				</div>
 			</button>
-
-			{/* Sections - Expandable */}
 			{isExpanded && course.sections.length > 0 && (
 				<div className="px-4 pb-4 border-t border-slate-100">
 					<div className="pt-3">

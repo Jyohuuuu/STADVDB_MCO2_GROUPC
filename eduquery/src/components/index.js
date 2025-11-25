@@ -8,3 +8,7 @@ export { default as Course } from "./Course";
 export { default as Section } from "./Section";
 export { default as Sidebar } from "./Sidebar";
 export { default as ScheduleView } from "./ScheduleView";
+export { default as AnalyticalReports } from "./AnalyticalReports";
+export { default as SectionUtilizationReport } from "./SectionUtilizationReport";
+export { default as StudentLoadReport } from "./StudentLoadReport";
+export { default as InstructorWorkloadReport } from "./InstructorWorkloadReport";

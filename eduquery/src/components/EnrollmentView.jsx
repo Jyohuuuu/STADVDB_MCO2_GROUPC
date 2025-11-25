@@ -16,6 +16,7 @@ function EnrollmentView({
 	expandedSections,
 	onSectionToggle,
 	onEnroll,
+	onCancelEnrollment,
 	enrollmentLoading,
 	enrollmentFeedback,
 	activeTab = "catalog",
@@ -132,11 +133,39 @@ function EnrollmentView({
 														<span>{course.capacity} students</span>
 													</div>
 												</div>
+
+												{/* Feedback Message */}
+												{enrollmentFeedback[course.section_id] && (
+													<div
+														className={`mt-3 p-2 rounded-lg text-sm ${
+															enrollmentFeedback[course.section_id].type ===
+															"success"
+																? "bg-green-50 text-green-700 border border-green-200"
+																: "bg-red-50 text-red-700 border border-red-200"
+														}`}
+													>
+														{enrollmentFeedback[course.section_id].message}
+													</div>
+												)}
 											</div>
-											<div className="flex items-center">
+											<div className="flex flex-col items-end space-y-2">
 												<span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
 													Enrolled
 												</span>
+												<button
+													onClick={() => onCancelEnrollment(course.section_id)}
+													disabled={enrollmentLoading.has(course.section_id)}
+													className="bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-4 rounded-lg transition-all duration-200 font-jakarta disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+												>
+													{enrollmentLoading.has(course.section_id) ? (
+														<>
+															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+															Cancelling...
+														</>
+													) : (
+														<>Cancel Enrollment</>
+													)}
+												</button>
 											</div>
 										</div>
 									</div>
@@ -152,7 +181,6 @@ function EnrollmentView({
 
 	return (
 		<div className="max-w-6xl mx-auto">
-			{/* Back Button */}
 			<div className="mb-8">
 				<button
 					onClick={onBackToStudents}
@@ -161,16 +189,12 @@ function EnrollmentView({
 					← Back to Student Selection
 				</button>
 			</div>
-
-			{/* Student Info */}
 			<div className="text-center mb-8">
 				<h2 className="text-3xl font-bold text-slate-800 mb-2 font-jakarta leading-tight">
 					{student ? `${student.first_name} ${student.last_name}` : "Student"}'s
 					Enrollment
 				</h2>
 			</div>
-
-			{/* Tab Content */}
 			{renderTabContent()}
 		</div>
 	);
