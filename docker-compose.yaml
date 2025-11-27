@@ -16,6 +16,7 @@ services:
       retries: 10
     volumes:
       - pgdata_oltp:/var/lib/postgresql/data
+      - ./wal_archive:/var/lib/postgresql/wal_archive
 
   postgres_olap:
     build: ./postgres-olap
@@ -72,13 +73,14 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:5000
+      VITE_API_URL: http://localhost:5000
     depends_on:
       - backend
 
 volumes:
   pgdata_oltp:
   pgdata_olap:
+  pg_wal_archive:
 
 networks:
   edu_network:

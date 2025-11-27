@@ -44,6 +44,10 @@ docker-compose up --build (make sure you are at root)
 2. To Stop and Remove Containers
 docker-compose down -v
 
+
+docker-compose build data_loader
+docker-compose up
+
 ```
 
 ## ACCESS
