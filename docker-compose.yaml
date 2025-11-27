@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: university_oltp
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: password
     networks: [edu_network]
     ports:
       - "5432:5432"
@@ -38,6 +40,27 @@ services:
       - "5433:5432"
     volumes:
       - pgdata_olap:/var/lib/postgresql/data
+
+  postgres_hotbackup:
+    image: postgres:16.10
+    container_name: postgres_hotbackup
+    networks:
+      - edu_network
+    environment:
+      PGUSER: replicator
+      PGPASSWORD: password
+    depends_on:
+      postgres_oltp:
+        condition: service_healthy
+    volumes:
+      - pgdata_hotbackup:/var/lib/postgresql/data
+      - ./postgres-hotbackup/entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh
+      - ./postgres-hotbackup/postgresql.conf:/etc/postgresql/postgresql.conf
+
+    entrypoint: /docker-entrypoint-initdb.d/entrypoint.sh
+    shm_size: 1g
+    ports:
+      - "5434:5432"
 
   data_loader:
     build: ./data-loader
@@ -80,6 +103,7 @@ services:
 volumes:
   pgdata_oltp:
   pgdata_olap:
+  pgdata_hotbackup:
   pg_wal_archive:
 
 networks:

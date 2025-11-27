@@ -1,5 +1,8 @@
 CREATE SCHEMA IF NOT EXISTS university_oltp;
 
+CREATE USER replicator WITH REPLICATION PASSWORD 'password';
+SELECT pg_create_physical_replication_slot('hotbackup_slot');
+
 CREATE TABLE university_oltp.department (
   dept_id SERIAL PRIMARY KEY,
   code VARCHAR(10) UNIQUE NOT NULL,
