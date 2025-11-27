@@ -53,3 +53,16 @@ docker-compose up
 ## ACCESS
 
 - **App**: http://localhost:5173
+
+## TESTING
+
+```
+Run this command to do a 10 student test on a 9/10 slot class, will try to use a docker image
+docker run -it --rm `
+  -v "${PWD}\test:/tests" `
+  --network host `
+  --entrypoint jmeter `
+  justb4/jmeter `
+  -n -t /tests/enroll_test.jmx -l /tests/results.jtl
+
+```

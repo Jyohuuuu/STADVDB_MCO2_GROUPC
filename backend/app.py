@@ -137,51 +137,96 @@ def enroll_student():
     if not student_id or not section_id:
         return jsonify({"success": False, "error": "student_id and section_id are required"}), 400
 
+    conn = None
+    cur = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        query_capacity = load_sql("enrollment.sql")
-        cur.execute(query_capacity, (section_id,))
-        if cur.rowcount == 0:
-            cur.close()
-            conn.close()
+        cur.execute("""
+            SELECT remaining_slots
+            FROM section
+            WHERE section_id = %s
+            FOR UPDATE
+        """, (section_id,))
+        row = cur.fetchone()
+        if not row:
+            conn.rollback()
+            return jsonify({"success": False, "error": "Section not found"}), 404
+
+        remaining_slots = row[0]
+        if remaining_slots <= 0:
+            conn.rollback()
             return jsonify({"success": False, "error": "Section is full"}), 409
 
-        query_student_conflicts = load_sql("schedule_conflicts.sql")
-        cur.execute(query_student_conflicts, (section_id,))
+        cur.execute("""
+            SELECT 1
+            FROM enrollment
+            WHERE student_id = %s AND section_id = %s
+            LIMIT 1
+        """, (student_id, section_id))
+        if cur.fetchone():
+            conn.rollback()
+            return jsonify({"success": False, "error": "Student already enrolled"}), 409
+
+        cur.execute("""
+            SELECT day_of_week, start_time, end_time
+            FROM university_oltp.section_schedule
+            WHERE section_id = %s
+        """, (section_id,))
         new_section_schedule = cur.fetchall()
 
-        quary_current_enrollments = load_sql("get_student_schedule_enroll.sql")
-        cur.execute(quary_current_enrollments, (student_id,))
-        current_schedules = cur.fetchall()
+        cur.execute("""
+            SELECT ss.day_of_week, ss.start_time, ss.end_time
+            FROM enrollment e
+            JOIN section_schedule ss ON e.section_id = ss.section_id
+            WHERE e.student_id = %s
+        """, (student_id,))
+        current_schedules = cur.fetchall() 
 
         for new_day, new_start, new_end in new_section_schedule:
             for cur_day, cur_start, cur_end in current_schedules:
                 if new_day == cur_day:
                     if not (new_end <= cur_start or new_start >= cur_end):
-                        cur.close()
-                        conn.close()
+                        conn.rollback()
                         return jsonify({"success": False, "error": "Schedule conflict detected"}), 409
 
-        try:
-            query_insert = load_sql("insert_enrollment.sql")
-            cur.execute(query_insert, (student_id, section_id))
-        except psycopg2.Error:
-            cur.close()
-            conn.close()
-            return jsonify({"success": False, "error": "Student already enrolled"}), 409
+        cur.execute("""
+            UPDATE section
+            SET remaining_slots = remaining_slots - 1
+            WHERE section_id = %s AND remaining_slots > 0
+            RETURNING remaining_slots
+        """, (section_id,))
+        updated = cur.fetchone()
+        if not updated:
+            conn.rollback()
+            return jsonify({"success": False, "error": "Section is full (concurrent)"}), 409
+
+        cur.execute("""
+            INSERT INTO enrollment (student_id, section_id)
+            VALUES (%s, %s)
+        """, (student_id, section_id))
 
         conn.commit()
-        cur.close()
-        conn.close()
-
         return jsonify({"success": True, "message": "Enrollment successful"})
 
+    except psycopg2.IntegrityError:
+        if conn:
+            conn.rollback()
+        return jsonify({"success": False, "error": "Student already enrolled or integrity error"}), 409
+
     except Exception as e:
+        if conn:
+            conn.rollback()
         print("ERROR during enrollment:")
         print(traceback.format_exc())
         return jsonify({"success": False, "error": "Internal server error"}), 500
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     
 @app.route("/api/enrolled_courses/<int:student_id>", methods=["GET"])
