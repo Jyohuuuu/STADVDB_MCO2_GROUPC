@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "Waiting for OLTP database to be ready..."
 until pg_isready -h postgres_oltp -p 5432 -U postgres -d university_oltp; do
