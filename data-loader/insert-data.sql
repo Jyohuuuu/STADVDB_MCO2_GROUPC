@@ -1003,6 +1003,8 @@ INSERT INTO university_oltp.section_schedule (section_id, day_of_week, start_tim
 (200, 'Monday', '9:15', '10:45'),
 (200, 'Thursday', '9:15', '10:45')
 
-
-
 ON CONFLICT (section_id, day_of_week, start_time, end_time) DO NOTHING;
+
+INSERT INTO university_oltp.enrollment (student_id, section_id) VALUES
+(1, 1)
+ON CONFLICT (student_id, section_id) DO NOTHING;
