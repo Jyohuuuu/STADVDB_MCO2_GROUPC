@@ -516,7 +516,7 @@ INSERT INTO university_oltp.student (student_number, first_name, last_name, emai
 ('S1427', 'Caleb', 'Freeman', 'caleb.freeman@univ.edu'),
 ('S1428', 'Penelope', 'Mills', 'penelope.mills@univ.edu'),
 ('S1429', 'Grayson', 'Rice', 'grayson.rice@univ.edu'),
-('S1430', 'Hazel', 'Vaughn', 'hazel.vaughn@univ.edu'),
+('S1430', 'Hazel', 'Vaugn', 'hazel.vaugn@univ.edu'),
 ('S1431', 'Elias', 'Chase', 'elias.chase@univ.edu'),
 ('S1432', 'Sadie', 'Fuller', 'sadie.fuller@univ.edu'),
 ('S1433', 'Declan', 'Boyd', 'declan.boyd@univ.edu'),
@@ -655,12 +655,12 @@ INSERT INTO university_oltp.section (course_id, section_code, instructor_id, cap
 (1, 'A', 1, 40, 40),
 (1, 'B', 1, 40, 40),
 (1, 'C', 2, 40, 40),
-(1, 'D', 2, 40, 40),
+(1, 'D', 2, 10, 10),
 -- Data Structures Sections
 (2, 'A', 1, 35, 35),
 (2, 'B', 1, 35, 35),
 (2, 'C', 2, 35, 35),
-(2, 'D', 2, 35, 35),
+(2, 'D', 2, 10, 10),
 -- Algorithms Sections
 (3, 'A', 13, 40, 40),
 (3, 'B', 13, 40, 40),
@@ -1906,5 +1906,26 @@ INSERT INTO university_oltp.enrollment (student_id, section_id) VALUES
 (135, 155),
 (136, 159),
 (136, 163),
-(136, 167)
+(136, 167),
+(137, 4),
+(138, 4),
+(139, 4),
+(140, 4),
+(141, 4),
+(142, 4),
+(143, 4),
+(144, 4),
+(145, 4),
+(146, 8),
+(147, 8),
+(148, 8),
+(149, 8),
+(150, 8),
+(151, 8),
+(152, 8),
+(153, 8),
+(154, 8)
+
+
+
 ON CONFLICT (student_id, section_id) DO NOTHING;
